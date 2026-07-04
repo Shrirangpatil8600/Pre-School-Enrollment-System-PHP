@@ -45,6 +45,8 @@ public class BackendServer {
             server.createContext("/api/payments", new PaymentsHandler());
             server.createContext("/api/attendance", new AttendanceHandler());
             server.createContext("/api/notices", new NoticesHandler());
+            server.createContext("/api/teachers", new TeachersHandler());
+            server.createContext("/api/schedules", new SchedulesHandler());
             server.createContext("/api/dashboard", new DashboardHandler());
 
             server.setExecutor(null); // default executor
@@ -292,7 +294,6 @@ public class BackendServer {
 
             if ("GET".equalsIgnoreCase(method)) {
                 List<Attendance> list = new ArrayList<>();
-                // If a date is passed as query parameter, filter by it. Else return all logs.
                 String query = exchange.getRequestURI().getQuery();
                 String filterDate = null;
                 if (query != null && query.contains("date=")) {
@@ -330,7 +331,6 @@ public class BackendServer {
                 }
             } else if ("POST".equalsIgnoreCase(method)) {
                 try {
-                    // Expecting a JSON array of attendance logs
                     Attendance[] logs = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Attendance[].class);
                     String sql = "INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?) " +
                                  "ON DUPLICATE KEY UPDATE status = VALUES(status)";
@@ -403,7 +403,117 @@ public class BackendServer {
         }
     }
 
-    // 7. /api/dashboard
+    // 7. /api/teachers (New Module 6 Handler)
+    static class TeachersHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (handleOptions(exchange)) return;
+
+            String method = exchange.getRequestMethod();
+            Connection conn = DBUtil.getConnection();
+
+            if ("GET".equalsIgnoreCase(method)) {
+                List<Teacher> list = new ArrayList<>();
+                String sql = "SELECT * FROM teachers ORDER BY id DESC";
+                try (PreparedStatement ps = conn.prepareStatement(sql);
+                     ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Teacher t = new Teacher();
+                        t.setId(rs.getInt("id"));
+                        t.setName(rs.getString("name"));
+                        t.setEmail(rs.getString("email"));
+                        t.setContact(rs.getString("contact"));
+                        t.setSpecialization(rs.getString("specialization"));
+                        list.add(t);
+                    }
+                    sendResponse(exchange, 200, gson.toJson(list));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    sendResponse(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");
+                }
+            } else if ("POST".equalsIgnoreCase(method)) {
+                try {
+                    Teacher t = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Teacher.class);
+                    String sql = "INSERT INTO teachers (name, email, contact, specialization) VALUES (?, ?, ?, ?)";
+                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                        ps.setString(1, t.getName());
+                        ps.setString(2, t.getEmail());
+                        ps.setString(3, t.getContact());
+                        ps.setString(4, t.getSpecialization());
+                        int affected = ps.executeUpdate();
+                        if (affected > 0) {
+                            sendResponse(exchange, 201, "{\"message\":\"Teacher registered successfully\"}");
+                        } else {
+                            sendResponse(exchange, 400, "{\"error\":\"Unable to register teacher\"}");
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    sendResponse(exchange, 500, "{\"error\":\"" + e.getMessage() + "\"}");
+                }
+            }
+        }
+    }
+
+    // 8. /api/schedules (New Module 7 Handler)
+    static class SchedulesHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (handleOptions(exchange)) return;
+
+            String method = exchange.getRequestMethod();
+            Connection conn = DBUtil.getConnection();
+
+            if ("GET".equalsIgnoreCase(method)) {
+                List<Schedule> list = new ArrayList<>();
+                String sql = "SELECT s.*, p.name as programName, t.name as teacherName FROM schedules s " +
+                             "JOIN programs p ON s.program_id = p.id " +
+                             "JOIN teachers t ON s.teacher_id = t.id ORDER BY s.id DESC";
+                try (PreparedStatement ps = conn.prepareStatement(sql);
+                     ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Schedule sch = new Schedule();
+                        sch.setId(rs.getInt("id"));
+                        sch.setProgramId(rs.getInt("program_id"));
+                        sch.setTeacherId(rs.getInt("teacher_id"));
+                        sch.setDayOfWeek(rs.getString("day_of_week"));
+                        sch.setTimeSlot(rs.getString("time_slot"));
+                        sch.setRoomNo(rs.getString("room_no"));
+                        sch.setProgramName(rs.getString("programName"));
+                        sch.setTeacherName(rs.getString("teacherName"));
+                        list.add(sch);
+                    }
+                    sendResponse(exchange, 200, gson.toJson(list));
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    sendResponse(exchange, 500, "{\"error\":\"" + ex.getMessage() + "\"}");
+                }
+            } else if ("POST".equalsIgnoreCase(method)) {
+                try {
+                    Schedule sch = gson.fromJson(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8), Schedule.class);
+                    String sql = "INSERT INTO schedules (program_id, teacher_id, day_of_week, time_slot, room_no) VALUES (?, ?, ?, ?, ?)";
+                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                        ps.setInt(1, sch.getProgramId());
+                        ps.setInt(2, sch.getTeacherId());
+                        ps.setString(3, sch.getDayOfWeek());
+                        ps.setString(4, sch.getTimeSlot());
+                        ps.setString(5, sch.getRoomNo());
+                        int affected = ps.executeUpdate();
+                        if (affected > 0) {
+                            sendResponse(exchange, 201, "{\"message\":\"Class schedule added successfully\"}");
+                        } else {
+                            sendResponse(exchange, 400, "{\"error\":\"Unable to add class schedule\"}");
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    sendResponse(exchange, 500, "{\"error\":\"" + ex.getMessage() + "\"}");
+                }
+            }
+        }
+    }
+
+    // 9. /api/dashboard
     static class DashboardHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -434,6 +544,16 @@ public class BackendServer {
                     try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM notices");
                          ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) stats.put("totalNotices", rs.getInt(1));
+                    }
+                    // Total Registered Teachers (New)
+                    try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM teachers");
+                         ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) stats.put("totalTeachers", rs.getInt(1));
+                    }
+                    // Total Active Schedules (New)
+                    try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM schedules");
+                         ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) stats.put("totalSchedules", rs.getInt(1));
                     }
 
                     sendResponse(exchange, 200, gson.toJson(stats));

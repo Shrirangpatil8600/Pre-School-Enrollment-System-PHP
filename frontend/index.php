@@ -7,7 +7,9 @@ $stats = [
     'totalStudents' => 0,
     'totalEnrollments' => 0,
     'totalPayments' => 0.0,
-    'totalNotices' => 0
+    'totalNotices' => 0,
+    'totalTeachers' => 0,
+    'totalSchedules' => 0
 ];
 if ($dash_response['status'] == 200 && is_array($dash_response['data'])) {
     $stats = array_merge($stats, $dash_response['data']);
@@ -52,6 +54,8 @@ if ($notice_response['status'] == 200 && is_array($notice_response['data'])) {
                 <a href="enrollment.php"><i class="fa-solid fa-file-signature me-2"></i> Enrollments</a>
                 <a href="payments.php"><i class="fa-solid fa-indian-rupee-sign me-2"></i> Fee Payments</a>
                 <a href="attendance.php"><i class="fa-solid fa-calendar-check me-2"></i> Attendance</a>
+                <a href="teachers.php"><i class="fa-solid fa-chalkboard-user me-2"></i> Teachers</a>
+                <a href="schedules.php"><i class="fa-solid fa-calendar-days me-2"></i> Class Schedules</a>
                 <a href="notices.php"><i class="fa-solid fa-bullhorn me-2"></i> Notice Board</a>
             </div>
             <div class="p-3 text-center text-white-50 border-top border-secondary">
@@ -63,13 +67,13 @@ if ($notice_response['status'] == 200 && is_array($notice_response['data'])) {
         <div class="col-md-10 p-4">
             <h2 class="mb-4">Dashboard</h2>
 
-            <!-- Metric Summary Cards -->
+            <!-- Metric Summary Cards Row 1 -->
             <div class="row g-4 mb-4">
                 <div class="col-md-3">
                     <div class="card card-stat bg-white p-3 border-0 border-start border-4 border-primary">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
-                                <h6 class="text-muted text-uppercase mb-1">Total Students</h6>
+                                <h6 class="text-muted text-uppercase mb-1" style="font-size: 13px;">Total Students</h6>
                                 <h3 class="m-0"><?php echo $stats['totalStudents']; ?></h3>
                             </div>
                             <i class="fa-solid fa-child fa-2x text-primary"></i>
@@ -80,7 +84,7 @@ if ($notice_response['status'] == 200 && is_array($notice_response['data'])) {
                     <div class="card card-stat bg-white p-3 border-0 border-start border-4 border-success">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
-                                <h6 class="text-muted text-uppercase mb-1">Active Enrollments</h6>
+                                <h6 class="text-muted text-uppercase mb-1" style="font-size: 13px;">Active Enrollments</h6>
                                 <h3 class="m-0"><?php echo $stats['totalEnrollments']; ?></h3>
                             </div>
                             <i class="fa-solid fa-user-check fa-2x text-success"></i>
@@ -91,7 +95,7 @@ if ($notice_response['status'] == 200 && is_array($notice_response['data'])) {
                     <div class="card card-stat bg-white p-3 border-0 border-start border-4 border-warning">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
-                                <h6 class="text-muted text-uppercase mb-1">Fees Collected</h6>
+                                <h6 class="text-muted text-uppercase mb-1" style="font-size: 13px;">Fees Collected</h6>
                                 <h3 class="m-0">₹<?php echo number_format($stats['totalPayments'], 2); ?></h3>
                             </div>
                             <i class="fa-solid fa-indian-rupee-sign fa-2x text-warning"></i>
@@ -102,10 +106,36 @@ if ($notice_response['status'] == 200 && is_array($notice_response['data'])) {
                     <div class="card card-stat bg-white p-3 border-0 border-start border-4 border-danger">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
-                                <h6 class="text-muted text-uppercase mb-1">Notices Posted</h6>
+                                <h6 class="text-muted text-uppercase mb-1" style="font-size: 13px;">Notices Posted</h6>
                                 <h3 class="m-0"><?php echo $stats['totalNotices']; ?></h3>
                             </div>
                             <i class="fa-solid fa-bullhorn fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metric Summary Cards Row 2 (New Modules) -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card card-stat bg-white p-3 border-0 border-start border-4 border-info">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h6 class="text-muted text-uppercase mb-1" style="font-size: 13px;">Registered Faculty / Teachers</h6>
+                                <h3 class="m-0"><?php echo $stats['totalTeachers']; ?></h3>
+                            </div>
+                            <i class="fa-solid fa-chalkboard-user fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card card-stat bg-white p-3 border-0 border-start border-4 border-secondary">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h6 class="text-muted text-uppercase mb-1" style="font-size: 13px;">Active Class Schedules</h6>
+                                <h3 class="m-0"><?php echo $stats['totalSchedules']; ?></h3>
+                            </div>
+                            <i class="fa-solid fa-calendar-days fa-2x text-secondary"></i>
                         </div>
                     </div>
                 </div>
@@ -151,8 +181,8 @@ if ($notice_response['status'] == 200 && is_array($notice_response['data'])) {
                             <li><strong>Database:</strong> MySQL storage engine</li>
                         </ul>
                         <div class="text-center">
-                            <a href="students.php" class="btn btn-primary w-100 mb-2"><i class="fa-solid fa-user-plus me-2"></i>Register New Student</a>
-                            <a href="enrollment.php" class="btn btn-success w-100"><i class="fa-solid fa-file-contract me-2"></i>Enroll Student</a>
+                            <a href="teachers.php" class="btn btn-primary w-100 mb-2"><i class="fa-solid fa-user-tie me-2"></i>Register New Teacher</a>
+                            <a href="schedules.php" class="btn btn-success w-100"><i class="fa-solid fa-calendar-plus me-2"></i>Schedule Time Slot</a>
                         </div>
                     </div>
                 </div>

@@ -6,12 +6,12 @@ Welcome! This document is a comprehensive guide to understanding, setting up, an
 
 ## 1. Project Overview & Architecture
 
-The **Pre-School Enrollment System** is designed to digitize and streamline registrations, enrollment programs, fee records, attendance cards, and notices for preschools.
+The **Pre-School Enrollment System** is designed to digitize and streamline registrations, enrollment programs, fee records, attendance cards, faculty directories, timetables, and notices for preschools.
 
 Instead of a monolithic layout, the project is structured as a **decoupled Client-Server application**:
 1.  **Frontend Client (PHP)**: Responsible only for the User Interface. It runs on a local web server (Apache/XAMPP), styled with Bootstrap 5, and queries the backend via JSON over HTTP.
 2.  **REST API Service (Java)**: A Maven-based microservice that runs a standalone HTTP server. It processes incoming JSON requests, executes business logic, maps data to Java entity models, and coordinates with MySQL.
-3.  **Database (MySQL)**: Stores relational data of students, enrollments, notices, payments, and attendance.
+3.  **Database (MySQL)**: Stores relational data of students, enrollments, notices, payments, attendance, teachers, and schedules.
 
 ```text
     +-----------------------+
@@ -38,13 +38,15 @@ Instead of a monolithic layout, the project is structured as a **decoupled Clien
 
 ---
 
-## 2. Five Integrated System Modules
+## 2. Seven Integrated System Modules
 
 1.  **Student Management (`students.php`)**: Form to register student info (Name, DOB, Age, Gender, Guardian Name, Contact, Address) and a database directory list of all students.
 2.  **Program & Enrollment (`enrollment.php`)**: Grade/program listings (Playgroup, Nursery, LKG, UKG) and student assignment processing, maintaining database constraints.
 3.  **Tuition Fee Payments (`payments.php`)**: Logs tuition fee payments (cash, card, online, cheque), displaying a transaction ledger.
 4.  **Attendance Tracker (`attendance.php`)**: A daily roll register allowing admins to mark students 'Present' or 'Absent' on any chosen calendar date using SQL batch updates.
-5.  **Notice Board (`notices.php` & `index.php`)**: Announcement board to post notifications, which automatically feed into the dashboard.
+5.  **Teacher/Faculty Management (`teachers.php`)**: Form to register faculty members (Name, Email, Contact, Specialization) and displays a list of all active staff.
+6.  **Class Schedules / Timetable (`schedules.php`)**: Links programs and teachers together to construct class schedules (Room details, Day of week, Time slots) for parent/staff access.
+7.  **Notice Board (`notices.php` & `index.php`)**: Announcement board to post notifications, which automatically feed into the dashboard.
 
 ---
 
@@ -67,7 +69,7 @@ Pre-School-Enrollment-System-PHP/
 │       │       ├── utility/
 │       │       │   └── DBUtil.java # Singleton JDBC connector class
 │       │       └── entity/         # Data Models (POJOs)
-│       │           ├── Student.java, Program.java, Enrollment.java, Payment.java, Attendance.java, Notice.java
+│       │           ├── Student.java, Program.java, Enrollment.java, Payment.java, Attendance.java, Notice.java, Teacher.java, Schedule.java
 └── frontend/                       # PHP Front-end Portal Client
     ├── config.php                  # Stores API endpoints and school settings
     ├── api_helper.php              # Shared library managing HTTP cURL queries
@@ -76,6 +78,8 @@ Pre-School-Enrollment-System-PHP/
     ├── enrollment.php              # Program enrollment register
     ├── payments.php                # Billing fee ledger register
     ├── attendance.php              # Attendance roll register
+    ├── teachers.php                # Faculty database register
+    ├── schedules.php               # Timetable class scheduler
     └── notices.php                 # notice publisher
 ```
 
@@ -108,7 +112,16 @@ CREATE TABLE programs (
     fee DOUBLE(10,2) NOT NULL
 );
 
--- 3. Enrollments Table
+-- 3. Teachers Table (New Module 6)
+CREATE TABLE teachers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    contact VARCHAR(20) NOT NULL,
+    specialization VARCHAR(100) NOT NULL
+);
+
+-- 4. Enrollments Table
 CREATE TABLE enrollments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -119,7 +132,7 @@ CREATE TABLE enrollments (
     FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE CASCADE
 );
 
--- 4. Payments Table
+-- 5. Payments Table
 CREATE TABLE payments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -129,7 +142,7 @@ CREATE TABLE payments (
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
 
--- 5. Attendance Table (Composite Unique Key prevents duplicate daily roll marks)
+-- 6. Attendance Table (Composite Unique Key prevents duplicate daily roll marks)
 CREATE TABLE attendance (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -139,12 +152,24 @@ CREATE TABLE attendance (
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
 
--- 6. Notices Table
+-- 7. Notices Table
 CREATE TABLE notices (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8. Class Schedules Table (New Module 7)
+CREATE TABLE schedules (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    program_id INT NOT NULL,
+    teacher_id INT NOT NULL,
+    day_of_week VARCHAR(20) NOT NULL,
+    time_slot VARCHAR(30) NOT NULL,
+    room_no VARCHAR(20) NOT NULL,
+    FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
 );
 ```
 

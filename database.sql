@@ -29,7 +29,22 @@ INSERT INTO programs (name, fee) VALUES
 ('UKG', 22000.00)
 ON DUPLICATE KEY UPDATE fee = VALUES(fee);
 
--- 3. Enrollments Table
+-- 3. Teachers Table (New Module 6)
+CREATE TABLE IF NOT EXISTS teachers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    contact VARCHAR(20) NOT NULL,
+    specialization VARCHAR(100) NOT NULL
+);
+
+-- Seed default teachers
+INSERT INTO teachers (name, email, contact, specialization) VALUES
+('Priya Deshmukh', 'priya@tenderflow.com', '9812345670', 'Early Child Care & Playgroup'),
+('Snehal More', 'snehal@tenderflow.com', '9812345671', 'Nursery Education'),
+('Rohan Joshi', 'rohan@tenderflow.com', '9812345672', 'Kindergarten (LKG/UKG)');
+
+-- 4. Enrollments Table
 CREATE TABLE IF NOT EXISTS enrollments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -40,7 +55,7 @@ CREATE TABLE IF NOT EXISTS enrollments (
     FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE CASCADE
 );
 
--- 4. Payments Table
+-- 5. Payments Table
 CREATE TABLE IF NOT EXISTS payments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -50,7 +65,7 @@ CREATE TABLE IF NOT EXISTS payments (
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
 
--- 5. Attendance Table
+-- 6. Attendance Table
 CREATE TABLE IF NOT EXISTS attendance (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
@@ -60,13 +75,32 @@ CREATE TABLE IF NOT EXISTS attendance (
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
 
--- 6. Notices Table
+-- 7. Notices Table
 CREATE TABLE IF NOT EXISTS notices (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 8. Class Schedules Table (New Module 7)
+CREATE TABLE IF NOT EXISTS schedules (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    program_id INT NOT NULL,
+    teacher_id INT NOT NULL,
+    day_of_week VARCHAR(20) NOT NULL,
+    time_slot VARCHAR(30) NOT NULL,
+    room_no VARCHAR(20) NOT NULL,
+    FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE
+);
+
+-- Seed default schedules
+INSERT INTO schedules (program_id, teacher_id, day_of_week, time_slot, room_no) VALUES
+(1, 1, 'Monday', '09:00 AM - 11:30 AM', 'Room A - Playgroup'),
+(2, 2, 'Monday', '09:00 AM - 12:00 PM', 'Room B - Nursery'),
+(3, 3, 'Tuesday', '08:30 AM - 12:30 PM', 'Room C - LKG'),
+(4, 3, 'Tuesday', '08:30 AM - 12:30 PM', 'Room D - UKG');
 
 -- Seed some mock data for initial verification
 INSERT INTO students (name, age, dob, gender, guardian_name, contact, address) VALUES

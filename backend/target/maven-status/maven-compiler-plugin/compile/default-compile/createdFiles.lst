@@ -9,7 +9,11 @@ com\preschool\BackendServer$DashboardHandler.class
 com\preschool\entity\Enrollment.class
 com\preschool\entity\Student.class
 com\preschool\BackendServer$StudentsHandler.class
+com\preschool\entity\Schedule.class
+com\preschool\BackendServer$TeachersHandler.class
 com\preschool\entity\Notice.class
+com\preschool\BackendServer$SchedulesHandler.class
 com\preschool\BackendServer$ProgramsHandler.class
+com\preschool\entity\Teacher.class
 com\preschool\utility\DBUtil.class
 com\preschool\entity\Attendance.class
