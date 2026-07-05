@@ -181,10 +181,10 @@ Follow these steps to deploy and run both components locally.
 
 ### Step 1: Set Up MySQL Database
 1.  Open your MySQL terminal or GUI manager (e.g. phpMyAdmin, Workbench).
-2.  Import and run the [database.sql](file:///c:/Users/Gaurav%20Gawali/Documents/GitHub/Pre-School-Enrollment-System-PHP/database.sql) script.
+2.  Import and run the [database.sql](file:///c:/Users/Shrirang%20Patil/Documents/GitHub/Pre-School-Enrollment-System-PHP/database.sql) script.
 
 ### Step 2: Configure and Run the Java Backend REST Server
-1.  Open [application.properties](file:///c:/Users/Gaurav%20Gawali/Documents/GitHub/Pre-School-Enrollment-System-PHP/backend/src/main/resources/application.properties) and update the database password:
+1.  Open [application.properties](file:///c:/Users/Shrirang%20Patil/Documents/GitHub/Pre-School-Enrollment-System-PHP/backend/src/main/resources/application.properties) and update the database password:
     ```properties
     jdbc.password=your_mysql_password
     ```
@@ -222,7 +222,7 @@ This section provides detailed answers to key technical design and operational q
 **Answer**:
 > "The communication is handled through REST endpoints exchanging JSON. 
 > 
-> In PHP, [api_helper.php](file:///c:/Users/Gaurav%20Gawali/Documents/GitHub/Pre-School-Enrollment-System-PHP/frontend/api_helper.php) uses **cURL** to establish HTTP sockets to the Java server running on `http://localhost:8085/api`. When a form is submitted (e.g., registering a student), PHP serializes the post data into JSON (`json_encode()`) and sends a POST request.
+> In PHP, [api_helper.php](file:///c:/Users/Shrirang%20Patil/Documents/GitHub/Pre-School-Enrollment-System-PHP/frontend/api_helper.php) uses **cURL** to establish HTTP sockets to the Java server running on `http://localhost:8085/api`. When a form is submitted (e.g., registering a student), PHP serializes the post data into JSON (`json_encode()`) and sends a POST request.
 >
 > On the Java side, the `BackendServer` reads the JSON payload from the request stream, parses it into a Java object using the **Gson** library, and executes the database insert query. Java then returns a JSON response (like `{"message":"Student registered successfully"}`) along with the appropriate HTTP status code (201 Created), which PHP parses and displays to the user."
 
